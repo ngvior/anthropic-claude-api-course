@@ -1,0 +1,11 @@
+[
+  {
+    "task": "Write a Python function that extracts the AWS account ID from an ARN string. The ARN format is 'arn:aws:service:region:account-id:resource'. Return the account ID as a string."
+  },
+  {
+    "task": "Create a JSON object that represents an AWS IAM policy allowing a principal to perform the s3:GetObject and s3:PutObject actions on a specific S3 bucket named 'my-data-bucket'."
+  },
+  {
+    "task": "Write a regular expression pattern that matches valid AWS S3 bucket names. S3 bucket names must be between 3-63 characters, contain only lowercase letters, numbers, hyphens, and dots, start and end with a letter or number, and cannot contain consecutive dots or hyphens at the start."
+  }
+]
