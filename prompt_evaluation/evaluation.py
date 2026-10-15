@@ -10,6 +10,8 @@ if target_dir not in sys.path:
 import system_prompt as sp
 import json
 from statistics import mean
+import re
+import ast
 
 
 def run_prompt(test_case):
@@ -18,11 +20,15 @@ def run_prompt(test_case):
 Please solve the following task:
 
 {test_case["task"]}
+
+* Respond only with Python, JSON, or a plain Regex
+* Do not add any comments or commentary or explanation
 """
 
     messages = []
     sp.add_message(messages, "user", prompt)
-    output = sp.chat(messages)
+    sp.add_message(messages, "assistant", "```code")
+    output = sp.chat(messages, stop_sequences=["```"])
     return output
 
 
@@ -32,8 +38,12 @@ def run_test_case(test_case):
 
     # Grade the output
     model_grade = grade_by_model(test_case, output)
-    score = model_grade["score"]
+    model_score = model_grade["score"]
     reasoning = model_grade["reasoning"]
+
+    syntax_score = grade_syntax(output, test_case)
+
+    score = (model_score + syntax_score) / 2
 
     return {
         "output": output,
@@ -77,6 +87,40 @@ def grade_by_model(test_case, output):
     sp.add_message(messages, "assistant", "```json")
     eval_text = sp.chat(messages, stop_sequences=["```"])
     return json.loads(eval_text)
+
+
+def validate_json(text):
+    try:
+        json.loads(text.strip())
+        return 10
+    except json.JSONDecodeError:
+        return 0
+
+
+def validate_python(text):
+    try:
+        ast.parse(text.strip())
+        return 10
+    except SyntaxError:
+        return 0
+
+
+def validate_regex(text):
+    try:
+        re.compile(text.strip())
+        return 10
+    except re.error:
+        return 0
+
+
+def grade_syntax(response, test_case):
+    format = test_case["format"]
+    if format == "json":
+        return validate_json(response)
+    elif format == "python":
+        return validate_python(response)
+    else:
+        return validate_regex(response)
 
 
 if __name__ == "__main__":
